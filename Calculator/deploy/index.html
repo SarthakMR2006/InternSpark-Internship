@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CalcPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0e0e11;
+  --surface: #17171c;
+  --surface2: #1e1e26;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --accent: #c8f135;
+  --accent-dim: rgba(200,241,53,0.12);
+  --text: #f0f0f5;
+  --muted: #6b6b7a;
+  --muted2: #9999aa;
+  --danger: #ff6b6b;
+  --danger-dim: rgba(255,107,107,0.12);
+  --info: #60c3ff;
+  --info-dim: rgba(96,195,255,0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 24px 64px rgba(0,0,0,0.6);
+}
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrapper {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.app-title h1 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 3px;
+  border: 1px solid var(--border);
+}
+
+.mode-tab {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mode-tab.active { background: var(--accent); color: #0e0e11; }
+
+.calc-shell {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.display {
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 6px;
+  position: relative;
+}
+
+.history-expression {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: right;
+  min-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.main-display {
+  font-family: 'Space Mono', monospace;
+  font-size: 42px;
+  font-weight: 700;
+  text-align: right;
+  line-height: 1;
+  letter-spacing: -1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.main-display.error  { color: var(--danger); }
+.main-display.result { color: var(--accent); }
+
+.display-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mem-indicator {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--info);
+  background: var(--info-dim);
+  padding: 2px 7px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.mem-indicator.visible { opacity: 1; }
+
+.angle-indicator {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--muted2);
+}
+
+/* exponent input that pops inline */
+.exp-input-row {
+  display: none;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 1rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+.exp-input-row.show { display: flex; }
+
+.exp-input-row label {
+  font-size: 12px;
+  color: var(--muted2);
+  white-space: nowrap;
+}
+
+.exp-input-row input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  padding: 6px 10px;
+  outline: none;
+}
+
+.exp-input-row input:focus { border-color: var(--accent); }
+
+.exp-input-row button {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #0e0e11;
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.history-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.history-panel.open {
+  max-height: 200px;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-inner {
+  padding: 0.75rem 1.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.history-item:hover { background: var(--surface2); }
+
+.history-item .expr {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-item .res {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.history-empty {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.btn-grid {
+  display: grid;
+  padding: 1rem;
+  gap: 8px;
+}
+
+.btn-grid.standard    { grid-template-columns: repeat(4, 1fr); }
+.btn-grid.scientific  { grid-template-columns: repeat(5, 1fr); }
+
+button.key {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0;
+  height: 58px;
+  cursor: pointer;
+  transition: transform 0.08s, filter 0.08s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+button.key:active { transform: scale(0.93); filter: brightness(0.8); }
+
+button.key.num   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+button.key.op    { background: rgba(200,241,53,0.08); color: var(--accent); border: 1px solid rgba(200,241,53,0.2); }
+button.key.fn    { background: rgba(255,255,255,0.04); color: var(--muted2); border: 1px solid var(--border); font-size: 12px; }
+button.key.clear { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(255,107,107,0.25); }
+button.key.equals{ background: var(--accent); color: #0e0e11; font-size: 22px; }
+button.key.mem   { background: var(--info-dim); color: var(--info); border: 1px solid rgba(96,195,255,0.2); font-size: 11px; letter-spacing: 0.04em; }
+
+button.key.span2 { grid-column: span 2; }
+
+.btn-grid.scientific button.key { height: 50px; font-size: 12px; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.tool-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.tool-btn:hover { color: var(--text); background: var(--surface2); }
+.tool-btn.active-tool { color: var(--accent); }
+
+/* UNIT CONVERTER */
+.converter-panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.converter-header {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.converter-header h2 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted2);
+}
+
+.converter-body { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 10px; }
+
+.conv-row { display: flex; gap: 8px; align-items: center; }
+
+.conv-input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 16px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.conv-input:focus { border-color: var(--accent); }
+
+.conv-select {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--muted2);
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px;
+  outline: none;
+  cursor: pointer;
+  min-width: 90px;
+}
+
+.conv-arrow { font-size: 18px; color: var(--muted); text-align: center; flex-shrink: 0; }
+
+.conv-category-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.conv-tab {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.conv-tab.active { background: var(--accent-dim); color: var(--accent); border-color: rgba(200,241,53,0.3); }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 13px;
+  color: var(--muted2);
+  transition: transform 0.25s ease;
+  z-index: 100;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.history-inner::-webkit-scrollbar { width: 4px; }
+.history-inner::-webkit-scrollbar-track { background: transparent; }
+.history-inner::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <div class="app-title">
+    <h1>CalcPro</h1>
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode('standard')">Standard</button>
+      <button class="mode-tab" onclick="setMode('scientific')">Scientific</button>
+    </div>
+  </div>
+
+  <div class="calc-shell">
+
+    <!-- Display -->
+    <div class="display">
+      <div class="display-meta">
+        <span class="mem-indicator" id="memIndicator">M</span>
+        <span class="angle-indicator" id="angleIndicator">DEG</span>
+      </div>
+      <div class="history-expression" id="histExpr"></div>
+      <div class="main-display" id="mainDisplay">0</div>
+    </div>
+
+    <!-- Inline exponent input (replaces prompt()) -->
+    <div class="exp-input-row" id="expInputRow">
+      <label>x ^ </label>
+      <input type="number" id="expValue" placeholder="exponent" step="any">
+      <button onclick="applyExponent()">OK</button>
+    </div>
+
+    <!-- History panel -->
+    <div class="history-panel" id="historyPanel">
+      <div class="history-inner" id="historyList">
+        <div class="history-empty" id="histEmpty">No history yet</div>
+      </div>
+    </div>
+
+    <!-- Standard grid -->
+    <div class="btn-grid standard" id="standardGrid">
+      <button class="key mem"   onclick="memClear()">MC</button>
+      <button class="key mem"   onclick="memRecall()">MR</button>
+      <button class="key mem"   onclick="memAdd()">M+</button>
+      <button class="key clear" onclick="clearAll()">AC</button>
+
+      <button class="key fn"    onclick="toggleSign()">+/−</button>
+      <button class="key fn"    onclick="percent()">%</button>
+      <button class="key fn"    onclick="sqrtOp()">√</button>
+      <button class="key op"    onclick="inputOp('÷')">÷</button>
+
+      <button class="key num"   onclick="inputNum('7')">7</button>
+      <button class="key num"   onclick="inputNum('8')">8</button>
+      <button class="key num"   onclick="inputNum('9')">9</button>
+      <button class="key op"    onclick="inputOp('×')">×</button>
+
+      <button class="key num"   onclick="inputNum('4')">4</button>
+      <button class="key num"   onclick="inputNum('5')">5</button>
+      <button class="key num"   onclick="inputNum('6')">6</button>
+      <button class="key op"    onclick="inputOp('−')">−</button>
+
+      <button class="key num"   onclick="inputNum('1')">1</button>
+      <button class="key num"   onclick="inputNum('2')">2</button>
+      <button class="key num"   onclick="inputNum('3')">3</button>
+      <button class="key op"    onclick="inputOp('+')">+</button>
+
+      <button class="key num span2" onclick="inputNum('0')">0</button>
+      <button class="key num"   onclick="inputDot()">.</button>
+      <button class="key equals" onclick="calculate()">=</button>
+    </div>
+
+    <!-- Scientific grid -->
+    <div class="btn-grid scientific" id="scientificGrid" style="display:none;">
+      <button class="key fn" onclick="sciOp('sin')">sin</button>
+      <button class="key fn" onclick="sciOp('cos')">cos</button>
+      <button class="key fn" onclick="sciOp('tan')">tan</button>
+      <button class="key fn" onclick="sciOp('log')">log</button>
+      <button class="key fn" onclick="sciOp('ln')">ln</button>
+
+      <button class="key fn" onclick="sciOp('asin')">sin⁻¹</button>
+      <button class="key fn" onclick="sciOp('acos')">cos⁻¹</button>
+      <button class="key fn" onclick="sciOp('atan')">tan⁻¹</button>
+      <button class="key fn" onclick="inputConst('π')">π</button>
+      <button class="key fn" onclick="inputConst('e')">e</button>
+
+      <button class="key fn" onclick="sciOp('x²')">x²</button>
+      <button class="key fn" onclick="sciOp('x³')">x³</button>
+      <button class="key fn" onclick="showExpInput()">xⁿ</button>
+      <button class="key fn" onclick="sciOp('10ˣ')">10ˣ</button>
+      <button class="key fn" onclick="sciOp('eˣ')">eˣ</button>
+
+      <button class="key fn" onclick="sciOp('1/x')">1/x</button>
+      <button class="key fn" onclick="sciOp('|x|')">|x|</button>
+      <button class="key fn" onclick="sciOp('n!')">n!</button>
+      <button class="key fn" onclick="toggleAngle()" id="angleBtn">DEG/RAD</button>
+      <button class="key clear" onclick="backspace()">⌫</button>
+
+      <button class="key mem"   onclick="memClear()">MC</button>
+      <button class="key mem"   onclick="memRecall()">MR</button>
+      <button class="key mem"   onclick="memAdd()">M+</button>
+      <button class="key clear" onclick="clearAll()">AC</button>
+      <button class="key op"    onclick="inputOp('÷')">÷</button>
+
+      <button class="key num"   onclick="inputNum('7')">7</button>
+      <button class="key num"   onclick="inputNum('8')">8</button>
+      <button class="key num"   onclick="inputNum('9')">9</button>
+      <button class="key op"    onclick="inputOp('×')">×</button>
+      <button class="key fn"    onclick="percent()">%</button>
+
+      <button class="key num"   onclick="inputNum('4')">4</button>
+      <button class="key num"   onclick="inputNum('5')">5</button>
+      <button class="key num"   onclick="inputNum('6')">6</button>
+      <button class="key op"    onclick="inputOp('−')">−</button>
+      <button class="key fn"    onclick="sqrtOp()">√</button>
+
+      <button class="key num"   onclick="inputNum('1')">1</button>
+      <button class="key num"   onclick="inputNum('2')">2</button>
+      <button class="key num"   onclick="inputNum('3')">3</button>
+      <button class="key op"    onclick="inputOp('+')">+</button>
+      <button class="key fn"    onclick="toggleSign()">+/−</button>
+
+      <button class="key num span2" onclick="inputNum('0')">0</button>
+      <button class="key num"   onclick="inputDot()">.</button>
+      <button class="key equals span2" onclick="calculate()">=</button>
+    </div>
+
+    <div class="toolbar">
+      <button class="tool-btn" id="histBtn" onclick="toggleHistory()">HISTORY</button>
+      <button class="tool-btn" onclick="copyResult()">COPY</button>
+      <button class="tool-btn" onclick="backspace()">⌫ DEL</button>
+    </div>
+  </div>
+
+  <!-- Unit Converter -->
+  <div class="converter-panel">
+    <div class="converter-header">
+      <h2>Unit Converter</h2>
+      <button class="tool-btn" onclick="useConvResult()" style="font-size:10px;">USE IN CALC →</button>
+    </div>
+    <div class="converter-body">
+      <div class="conv-category-tabs" id="convTabs"></div>
+      <div class="conv-row">
+        <input  class="conv-input" id="convFrom"     type="number" placeholder="0" oninput="convertUnits()">
+        <select class="conv-select" id="convFromUnit" onchange="convertUnits()"></select>
+      </div>
+      <div class="conv-arrow">⇅</div>
+      <div class="conv-row">
+        <input  class="conv-input" id="convTo"     type="number" placeholder="—" readonly>
+        <select class="conv-select" id="convToUnit" onchange="convertUnits()"></select>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let display   = '0';
+let expression = '';
+let justCalc  = false;   // true right after = or unary op — next digit starts fresh
+let memory    = null;
+let calcHistory = [];
+let angleMode = 'DEG';
+let currentMode = 'standard';
+let pendingOp = null;
+let prevVal   = null;
+let pendingUnary = null;
+
+// ─── DISPLAY HELPERS ──────────────────────────────────────────────────────────
+function updateDisplay(val, type) {
+  const el = document.getElementById('mainDisplay');
+  el.textContent = val;
+  el.className = 'main-display' + (type ? ' ' + type : '');
+}
+
+function updateHistExpr(expr) {
+  document.getElementById('histExpr').textContent = expr;
+}
+
+function unaryDisplayLabel(op) {
+  if (op === 'sqrt') return '√';
+  if (op === 'asin') return 'sin⁻¹';
+  if (op === 'acos') return 'cos⁻¹';
+  if (op === 'atan') return 'tan⁻¹';
+  return op;
+}
+
+function pendingUnaryText() {
+  return unaryDisplayLabel(pendingUnary) + '(' + (justCalc ? '' : display) + ')';
+}
+
+function refreshInputDisplay() {
+  if (pendingUnary !== null) {
+    const text = pendingUnaryText();
+    updateDisplay(justCalc ? '0' : display);
+    updateHistExpr((expression || '') + text);
+    return;
+  }
+  updateDisplay(display);
+  updateHistExpr((expression || '') + display);
+}
+
+function formatNum(n) {
+  if (!isFinite(n)) return 'Error';
+  // kill float dust like 0.30000000000000004
+  const clean = parseFloat(n.toPrecision(12));
+  const s = clean.toString();
+  // switch to exp notation only if string gets ridiculous
+  if (s.replace('-','').replace('.','').length > 13) {
+    return parseFloat(n.toPrecision(8)).toExponential(4);
+  }
+  return s;
+}
+
+// ─── NUMBER INPUT ─────────────────────────────────────────────────────────────
+function inputNum(d) {
+  if (justCalc) {
+    // Start a new number after an operator, result, or selected prefix function.
+    display = d;
+    justCalc = false;
+  } else {
+    if (display === '0' || display === 'Error') display = d;
+    else if (display.length < 15) display += d;
+  }
+  refreshInputDisplay();
+}
+
+function inputDot() {
+  if (justCalc) { display = '0.'; justCalc = false; }
+  else if (!display.includes('.')) display += '.';
+  refreshInputDisplay();
+}
+
+// ─── BINARY OPERATORS ─────────────────────────────────────────────────────────
+function inputOp(op) {
+  if (display === 'Error') return;
+  applyPendingUnary();
+  const num = parseFloat(display);
+
+  if (prevVal !== null && pendingOp !== null && !justCalc) {
+    // chain: compute pending first
+    const chained = applyOp(prevVal, num, pendingOp);
+    if (!isFinite(chained)) { showError(); return; }
+    prevVal = chained;
+    display = formatNum(chained);
+    updateDisplay(display);
+  } else {
+    prevVal = num;
+  }
+
+  pendingOp  = op;
+  expression = formatNum(prevVal) + ' ' + op + ' ';
+  justCalc   = true;          // next digit/dot starts fresh input
+  updateHistExpr(expression);
+}
+
+function applyOp(a, b, op) {
+  if (op === '+') return a + b;
+  if (op === '−') return a - b;
+  if (op === '×') return a * b;
+  if (op === '÷') return b === 0 ? NaN : a / b;
+  return b;
+}
+
+function calculate() {
+  if (pendingUnary !== null) {
+    applyPendingUnary();
+    if (pendingOp === null || prevVal === null) return;
+  }
+  if (pendingOp === null || prevVal === null) return;
+  const b      = parseFloat(display);
+  const result = applyOp(prevVal, b, pendingOp);
+  const exprStr = expression + formatNum(b) + ' =';
+
+  if (!isFinite(result)) {
+    addToHistory(exprStr, 'Error');
+    updateDisplay('Error', 'error');
+    display = 'Error';
+  } else {
+    const r = formatNum(result);
+    addToHistory(exprStr, r);
+    display = r;
+    updateDisplay(r, 'result');
+  }
+  updateHistExpr(exprStr);
+  justCalc  = true;
+  prevVal   = null;
+  pendingOp = null;
+  expression = '';
+}
+
+// ─── UNARY / UTILITY ─────────────────────────────────────────────────────────
+function clearAll() {
+  display = '0'; expression = ''; justCalc = false;
+  prevVal = null; pendingOp = null; pendingUnary = null;
+  updateDisplay('0'); updateHistExpr('');
+  hideExpInput();
+}
+
+function backspace() {
+  if (display === 'Error') { clearAll(); return; }
+
+  if (pendingUnary !== null && justCalc) {
+    pendingUnary = null;
+    justCalc = false;
+    display = '0';
+    refreshInputDisplay();
+    return;
+  }
+
+  if (justCalc) return;
+
+  display = display.length > 1 ? display.slice(0, -1) : '0';
+  if (pendingUnary !== null && display === '0') justCalc = true;
+  refreshInputDisplay();
+}
+
+function toggleSign() {
+  if (display === '0' || display === 'Error') return;
+  display = display.startsWith('-') ? display.slice(1) : '-' + display;
+  refreshInputDisplay();
+}
+
+function percent() {
+  const n = parseFloat(display);
+  if (isNaN(n)) return;
+  const r = formatNum(n / 100);
+  addToHistory(display + '%', r);
+  display = r;
+  updateDisplay(display, 'result');
+  justCalc = true;
+}
+
+// √ as a UNARY op — completely independent from the binary operator path
+function sqrtOp() {
+  if (justCalc || display === '0') {
+    setPendingUnary('sqrt');
+    return;
+  }
+  const n = parseFloat(display);
+  if (isNaN(n)) return;
+  finishUnary('sqrt(' + display + ')', runUnary('sqrt', n));
+}
+
+// ─── SCIENTIFIC OPS ───────────────────────────────────────────────────────────
+// All sci ops are UNARY — they consume the current display and produce a result.
+// They do NOT touch prevVal / pendingOp at all.
+function toRad(deg) { return deg * Math.PI / 180; }
+function toDeg(rad) { return rad * 180 / Math.PI; }
+
+function sciOp(op) {
+  if (justCalc || display === '0') {
+    setPendingUnary(op);
+    return;
+  }
+  const n      = parseFloat(display);
+  finishUnary(op + '(' + display + ')', runUnary(op, n));
+}
+
+function runUnary(op, n) {
+  const isRad  = (angleMode === 'RAD');
+
+  switch (op) {
+    case 'sqrt': return Math.sqrt(n);
+    case 'sin':  return Math.sin(isRad ? n : toRad(n));
+    case 'cos':  return Math.cos(isRad ? n : toRad(n));
+    case 'tan':  return Math.tan(isRad ? n : toRad(n));
+    case 'asin': return isRad ? Math.asin(n) : toDeg(Math.asin(n));
+    case 'acos': return isRad ? Math.acos(n) : toDeg(Math.acos(n));
+    case 'atan': return isRad ? Math.atan(n) : toDeg(Math.atan(n));
+    case 'log':  return Math.log10(n);
+    case 'ln':   return Math.log(n);
+    case 'x²':  return n * n;
+    case 'x³':  return n * n * n;
+    case '10ˣ': return Math.pow(10, n);
+    case 'eˣ':  return Math.exp(n);
+    case '1/x': return 1 / n;
+    case '|x|': return Math.abs(n);
+    case 'n!':  return factorial(n);
+    default: return NaN;
+  }
+}
+
+function setPendingUnary(op) {
+  if (display === 'Error') return;
+  pendingUnary = op;
+  justCalc = true;
+  refreshInputDisplay();
+}
+
+function applyPendingUnary() {
+  if (pendingUnary === null || display === 'Error') return;
+  const n = parseFloat(display);
+  const op = pendingUnary;
+  pendingUnary = null;
+  finishUnary(op + '(' + display + ')', runUnary(op, n));
+}
+
+// Single place to finish any unary operation cleanly
+function finishUnary(label, result) {
+  if (!isFinite(result) || isNaN(result)) {
+    addToHistory(label + ' =', 'Error');
+    updateHistExpr(label + ' = Error');
+    display = 'Error';
+    updateDisplay('Error', 'error');
+  } else {
+    const r = formatNum(result);
+    addToHistory(label + ' =', r);
+    updateHistExpr(label + ' = ' + r);
+    display = r;
+    updateDisplay(r, 'result');
+  }
+  // mark that a result is showing — but preserve prevVal/pendingOp
+  // so you can do: 9 × → result of sci op on 9 is ready → press + to continue chain
+  justCalc = true;
+  pendingUnary = null;
+}
+
+function showError() {
+  display = 'Error';
+  updateDisplay('Error', 'error');
+  justCalc = true;
+}
+
+function factorial(n) {
+  if (!Number.isInteger(n) || n < 0) return NaN;
+  if (n > 170) return Infinity;
+  let r = 1;
+  for (let i = 2; i <= n; i++) r *= i;
+  return r;
+}
+
+function inputConst(c) {
+  const val = c === 'π' ? Math.PI : Math.E;
+  display   = formatNum(val);
+  justCalc  = false;
+  if (pendingUnary !== null) applyPendingUnary();
+  updateDisplay(display);
+}
+
+function toggleAngle() {
+  angleMode = angleMode === 'DEG' ? 'RAD' : 'DEG';
+  document.getElementById('angleIndicator').textContent = angleMode;
+  showToast('Angle mode: ' + angleMode);
+}
+
+// ─── EXPONENT (xⁿ) — inline input, no prompt() ───────────────────────────────
+function showExpInput() {
+  const row = document.getElementById('expInputRow');
+  row.classList.add('show');
+  document.getElementById('expValue').value = '';
+  document.getElementById('expValue').focus();
+}
+
+function hideExpInput() {
+  document.getElementById('expInputRow').classList.remove('show');
+}
+
+function applyExponent() {
+  const expVal = parseFloat(document.getElementById('expValue').value);
+  if (isNaN(expVal)) { showToast('Enter a valid exponent'); return; }
+  const n      = parseFloat(display);
+  const result = Math.pow(n, expVal);
+  const label  = display + ' ^ ' + expVal;
+  hideExpInput();
+  finishUnary(label, result);
+}
+
+// allow Enter key in exponent field
+document.getElementById('expValue').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') applyExponent();
+  if (e.key === 'Escape') hideExpInput();
+});
+
+// ─── MEMORY ───────────────────────────────────────────────────────────────────
+function memClear() {
+  memory = null;
+  document.getElementById('memIndicator').classList.remove('visible');
+  showToast('Memory cleared');
+}
+
+function memRecall() {
+  if (memory === null) { showToast('Memory is empty'); return; }
+  display  = formatNum(memory);
+  justCalc = false;
+  updateDisplay(display);
+}
+
+function memAdd() {
+  const n = parseFloat(display);
+  if (isNaN(n)) return;
+  memory = (memory || 0) + n;
+  document.getElementById('memIndicator').classList.add('visible');
+  showToast('Memory: ' + formatNum(memory));
+}
+
+// ─── HISTORY ──────────────────────────────────────────────────────────────────
+function addToHistory(expr, result) {
+  calcHistory.unshift({ expr, result });
+  if (calcHistory.length > 30) calcHistory.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const list  = document.getElementById('historyList');
+  const empty = document.getElementById('histEmpty');
+  list.querySelectorAll('.history-item').forEach(e => e.remove());
+
+  if (calcHistory.length === 0) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  calcHistory.forEach(h => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `<span class="expr">${h.expr}</span><span class="res">${h.result}</span>`;
+    item.onclick = () => {
+      if (h.result === 'Error') return;
+      display  = h.result;
+      justCalc = true;
+      updateDisplay(display, 'result');
+    };
+    list.appendChild(item);
+  });
+}
+
+function toggleHistory() {
+  document.getElementById('historyPanel').classList.toggle('open');
+  document.getElementById('histBtn').classList.toggle('active-tool');
+}
+
+// ─── MODE SWITCH ──────────────────────────────────────────────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && mode === 'standard') || (i === 1 && mode === 'scientific'));
+  });
+  document.getElementById('standardGrid').style.display   = mode === 'standard'   ? 'grid' : 'none';
+  document.getElementById('scientificGrid').style.display = mode === 'scientific' ? 'grid' : 'none';
+  hideExpInput();
+}
+
+// ─── COPY ─────────────────────────────────────────────────────────────────────
+function copyResult() {
+  if (display === 'Error') return;
+  const copied = () => showToast('Copied: ' + display);
+  const fallbackCopy = () => {
+    const temp = document.createElement('textarea');
+    temp.value = display;
+    temp.setAttribute('readonly', '');
+    temp.style.position = 'fixed';
+    temp.style.left = '-9999px';
+    document.body.appendChild(temp);
+    temp.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(temp);
+    ok ? copied() : showToast('Copy not allowed');
+  };
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(display).then(copied).catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+}
+
+// ─── KEYBOARD ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (document.activeElement === document.getElementById('expValue')) return;
+  if (e.key >= '0' && e.key <= '9') inputNum(e.key);
+  else if (e.key === '.')           inputDot();
+  else if (e.key === '+')           inputOp('+');
+  else if (e.key === '-')           inputOp('−');
+  else if (e.key === '*')           inputOp('×');
+  else if (e.key === '/') { e.preventDefault(); inputOp('÷'); }
+  else if (e.key === 'Enter' || e.key === '=') calculate();
+  else if (e.key === 'Backspace')   backspace();
+  else if (e.key === 'Escape')      clearAll();
+  else if (e.key === '%')           percent();
+});
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ─── UNIT CONVERTER ───────────────────────────────────────────────────────────
+const convCategories = {
+  Length:  { m: 1, km: 1000, cm: 0.01, mm: 0.001, mi: 1609.344, ft: 0.3048, inch: 0.0254, yd: 0.9144 },
+  Weight:  { kg: 1, g: 0.001, lb: 0.453592, oz: 0.0283495, t: 1000 },
+  Temp:    { C: null, F: null, K: null },
+  Speed:   { 'km/h': 1, 'm/s': 3.6, mph: 1.60934, knot: 1.852 },
+  Area:    { 'm²': 1, 'km²': 1e6, 'ft²': 0.0929, acre: 4046.86, ha: 10000 },
+  Data:    { B: 1, KB: 1024, MB: 1048576, GB: 1073741824, TB: 1099511627776 }
+};
+
+let activeConvCat = 'Length';
+
+function buildConverter() {
+  const tabs = document.getElementById('convTabs');
+  tabs.innerHTML = '';
+  Object.keys(convCategories).forEach(cat => {
+    const b = document.createElement('button');
+    b.className = 'conv-tab' + (cat === activeConvCat ? ' active' : '');
+    b.textContent = cat;
+    b.onclick = () => { activeConvCat = cat; buildConverter(); };
+    tabs.appendChild(b);
+  });
+  buildUnitSelects();
+}
+
+function buildUnitSelects() {
+  const units = Object.keys(convCategories[activeConvCat]);
+  ['convFromUnit', 'convToUnit'].forEach((id, i) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '';
+    units.forEach((u, j) => {
+      const o = document.createElement('option');
+      o.value = u; o.textContent = u;
+      if ((i === 0 && j === 0) || (i === 1 && j === 1)) o.selected = true;
+      sel.appendChild(o);
+    });
+  });
+  convertUnits();
+}
+
+function convertUnits() {
+  const fromVal  = parseFloat(document.getElementById('convFrom').value);
+  if (isNaN(fromVal)) { document.getElementById('convTo').value = ''; return; }
+  const fromUnit = document.getElementById('convFromUnit').value;
+  const toUnit   = document.getElementById('convToUnit').value;
+  const cat      = convCategories[activeConvCat];
+
+  let result;
+  if (activeConvCat === 'Temp') {
+    result = convertTemp(fromVal, fromUnit, toUnit);
+  } else {
+    result = (fromVal * cat[fromUnit]) / cat[toUnit];
+  }
+  document.getElementById('convTo').value = parseFloat(result.toPrecision(10));
+}
+
+function convertTemp(val, from, to) {
+  let c;
+  if (from === 'C') c = val;
+  else if (from === 'F') c = (val - 32) * 5 / 9;
+  else c = val - 273.15;
+  if (to === 'C') return c;
+  if (to === 'F') return c * 9 / 5 + 32;
+  return c + 273.15;
+}
+
+function useConvResult() {
+  const val = document.getElementById('convTo').value;
+  if (!val) { showToast('Nothing to use yet'); return; }
+  display  = parseFloat(parseFloat(val).toPrecision(10)).toString();
+  justCalc = true;
+  updateDisplay(display, 'result');
+  showToast('Used in calculator!');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+buildConverter();
+</script>
+</body>
+</html>
