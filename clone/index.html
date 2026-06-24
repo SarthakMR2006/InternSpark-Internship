@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spotify Web Player UI Clone</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <span>Spotify</span>
+        </div>
+
+        <nav class="nav-list" aria-label="Primary navigation">
+          <button class="nav-item active" type="button">
+            <span>⌂</span>
+            <span>Home</span>
+          </button>
+          <button class="nav-item" type="button">
+            <span>⌕</span>
+            <span>Search</span>
+          </button>
+          <button class="nav-item" type="button">
+            <span>▦</span>
+            <span>Your Library</span>
+          </button>
+        </nav>
+
+        <div class="library-actions">
+          <button type="button">＋ Create Playlist</button>
+          <button type="button">♡ Liked Songs</button>
+        </div>
+
+        <div class="playlist-list" aria-label="Playlists">
+          <a href="#">Daily Mix 01</a>
+          <a href="#">Focus Flow</a>
+          <a href="#">Indie Morning</a>
+          <a href="#">Synth Drive</a>
+          <a href="#">Coding Mode</a>
+          <a href="#">Top Songs 2026</a>
+        </div>
+      </aside>
+
+      <main class="main-view">
+        <header class="topbar">
+          <button class="icon-button menu-toggle" id="menuToggle" type="button" aria-label="Toggle menu">☰</button>
+          <div class="history-controls">
+            <button class="icon-button" type="button" aria-label="Back">‹</button>
+            <button class="icon-button" type="button" aria-label="Forward">›</button>
+          </div>
+          <label class="search-box">
+            <span>⌕</span>
+            <input type="search" placeholder="What do you want to play?" />
+          </label>
+          <div class="account-actions">
+            <button class="upgrade-button" type="button">Explore Premium</button>
+            <button class="avatar" type="button" aria-label="Account">S</button>
+          </div>
+        </header>
+
+        <section class="hero-section" aria-label="Featured playlist">
+          <div>
+            <p class="eyebrow">Playlist</p>
+            <h1>Today&apos;s Top Hits</h1>
+            <p class="hero-copy">The web player look: bold album art, compact controls, and a dense home feed ready for scanning.</p>
+            <div class="hero-actions">
+              <button class="play-cta" type="button" data-track="Today&apos;s Top Hits">▶</button>
+              <button class="save-button" type="button">Save</button>
+            </div>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="vinyl"></div>
+            <div class="cover-grid">
+              <span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-section">
+          <div class="section-heading">
+            <h2>Good afternoon</h2>
+            <a href="#">Show all</a>
+          </div>
+          <div class="quick-grid">
+            <button class="quick-card" type="button" data-track="Liked Songs"><span class="tile tile-pink"></span><strong>Liked Songs</strong></button>
+            <button class="quick-card" type="button" data-track="Deep Focus"><span class="tile tile-blue"></span><strong>Deep Focus</strong></button>
+            <button class="quick-card" type="button" data-track="Release Radar"><span class="tile tile-green"></span><strong>Release Radar</strong></button>
+            <button class="quick-card" type="button" data-track="Mood Booster"><span class="tile tile-gold"></span><strong>Mood Booster</strong></button>
+          </div>
+        </section>
+
+        <section class="content-section">
+          <div class="section-heading">
+            <h2>Made for you</h2>
+            <a href="#">Show all</a>
+          </div>
+          <div class="album-grid">
+            <article class="album-card" data-track="Chill Synth">
+              <div class="album-art art-one"></div>
+              <h3>Chill Synth</h3>
+              <p>Glowing electronic tracks for steady focus.</p>
+              <button type="button" aria-label="Play Chill Synth">▶</button>
+            </article>
+            <article class="album-card" data-track="Golden Hour">
+              <div class="album-art art-two"></div>
+              <h3>Golden Hour</h3>
+              <p>Warm pop and indie picks for the evening.</p>
+              <button type="button" aria-label="Play Golden Hour">▶</button>
+            </article>
+            <article class="album-card" data-track="Night Drive">
+              <div class="album-art art-three"></div>
+              <h3>Night Drive</h3>
+              <p>Late city lights, basslines, and motion.</p>
+              <button type="button" aria-label="Play Night Drive">▶</button>
+            </article>
+            <article class="album-card" data-track="Acoustic Blend">
+              <div class="album-art art-four"></div>
+              <h3>Acoustic Blend</h3>
+              <p>Quiet guitars, soft vocals, and room to think.</p>
+              <button type="button" aria-label="Play Acoustic Blend">▶</button>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="player">
+        <div class="now-playing">
+          <div class="mini-cover"></div>
+          <div>
+            <strong id="trackTitle">Today&apos;s Top Hits</strong>
+            <span>Spotify UI Clone</span>
+          </div>
+        </div>
+        <div class="player-center">
+          <div class="controls">
+            <button type="button" aria-label="Shuffle">⤨</button>
+            <button type="button" aria-label="Previous">⏮</button>
+            <button class="main-play" id="mainPlay" type="button" aria-label="Play or pause">▶</button>
+            <button type="button" aria-label="Next">⏭</button>
+            <button type="button" aria-label="Repeat">↻</button>
+          </div>
+          <div class="progress-row">
+            <span>1:18</span>
+            <input type="range" min="0" max="100" value="42" aria-label="Playback progress" />
+            <span>3:41</span>
+          </div>
+        </div>
+        <div class="volume-row">
+          <span>▣</span>
+          <input type="range" min="0" max="100" value="70" aria-label="Volume" />
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
